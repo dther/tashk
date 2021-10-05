@@ -67,10 +67,8 @@ tashk_do() {
 }
 
 tashk_ls() {
-	# TODO: alternative cat support for pretty output
-	# FIXME: -n is a gnu extension
 	# TODO: support for pre- and post-processing
-	cat -n "$FILE"
+	nl -ba "$FILE"
 }
 
 tashk_edit() {
@@ -97,7 +95,7 @@ overwritten by the next operation." >&2;;
 		remove)
 			echo "Unimplemented." >&2;;
 		ls)
-			echo "Lists tasks with 'cat -n'." >&2;;
+			echo "Lists tasks with 'nl -ba'." >&2;;
 		init)
 			echo "Unimplemented." >&2;;
 		git)
