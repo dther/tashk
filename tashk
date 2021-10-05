@@ -1,0 +1,129 @@
+#!/bin/sh
+
+[ -z "$TASHK_DIR" ] && echo 'Please set TASHK_DIR.' >&2 && exit 1
+[ "$(id -u)" = "root" ] && echo 'Running this as root is a bad idea!' >&2 && exit 1
+
+_git() {
+	# drop-in git replacement
+	# TODO: check if the directory contains a git repository...
+	if [ "$TASHK_SILENCE_GIT" = "false" ]; then
+		git -C "$TASHK_DIR" "$@"
+	else
+		# S I L E N C E, G I T - Orks, probably
+		git -C "$TASHK_DIR" "$@" >/dev/null 2>&1
+	fi
+}
+
+toggle_silent() {
+	if [ "$TASHK_SILENCE_GIT" = "false" ]; then
+		TASHK_SILENCE_GIT="true"
+	else
+		TASHK_SILENCE_GIT="false"
+	fi
+}
+
+tashk_add() {
+	# TODO: Add some useful preprocessing (add dates, add priority...)
+	echo "Enter the new task." >&2
+	read -r task
+	if [ -z "$task" ]; then
+		echo "No task entered, aborting..." >&2
+		exit 2
+	fi
+	echo "$task" >> "$FILE"
+	task_no=$(wc -l "$FILE")
+	task_no=${task_no%%" $FILE"}
+	echo "Added \"$task\" as task no. $task_no"
+	_git commit -m "\"$task\" (no. $task_no) added to $TASHK_FILE" "$FILE"
+}
+
+tashk_do() {
+	# Mark task as completed.
+	task_no=$2
+	task=$(sed "$task_no!d" "$FILE")
+	echo "You wanted to do task $task_no, $task, but I haven't figured out the sed script yet..."
+	# TODO: write a sed script that transforms a line to its completed form
+#	sed \
+#"
+#" "$FILE"
+#	_git commit -m "Marked task $task_no as complete - $task"
+}
+
+tashk_ls() {
+	# TODO: alternative cat support for pretty output
+	# FIXME: -n is a gnu extension
+	# TODO: support for pre- and post-processing
+	cat -n "$FILE"
+}
+
+tashk_edit() {
+	# open in editor. vi if unspecified.
+	EDITOR="${EDITOR:-vi}"
+	$EDITOR "$FILE"
+	_git commit -m "tashk edit on $TASHK_FILE" "$FILE"
+}
+
+tashk_usage() {
+	case "$1" in
+		add) echo "Unimplemented." >&2;;
+		edit) echo "Edits todo.txt. Not done." >&2 ;;
+		do) ;;
+		remove) ;;
+		ls) ;;
+		init) ;;
+		git) ;;
+		*) echo \
+"tashk: the unix todo.txt manager
+Usage: tashk [-v] [-f todofile] [command] [command_flags] command_args...
+  '-v' toggles git output (supressed by default)
+  '-f todofile' indicates which todo file to use, default todo.txt
+Command flags are command-specific.
+Command flag parsing stops at the first non-flag argument.
+
+Command must be one of the following:
+	add: Read and add a new task from stdin
+	edit: Edit todofile in text editor
+	do: Mark a task as complete
+	remove: Delete a task
+	ls: List all tasks, with numbers
+	init: ???
+	git: Call 'git' from within \$TASHKDIR and always print output
+	help: display this usage message
+For help with specific commands, do 'tashk help <command>'" >&2;;
+	esac
+}
+
+
+#shellcheck disable=2034
+PROGRAM=${0##*/}
+
+# Each command should implement its own getopts.
+# See getopts(1p) for a good working example for POSIX getopts.
+while getopts "vf:" flag; do
+	case "$flag" in
+		v) toggle_silent;;
+		f) TASHK_FILE=$OPTARG;;
+		?) tashk_usage && exit 2;;
+	esac
+done
+shift $(( OPTIND - 1 ))
+COMMAND=$1
+
+# Set Defaults
+#shellcheck disable=2034
+ISODATE=$(date '+%Y-%m-%d') # ISO standard date format, used by the format
+TASHK_SILENCE_GIT=${TASHK_SILENCE_GIT:-true}
+TASHK_FILE="${TASHK_FILE:-todo.txt}" # The name of the file
+FILE="$TASHK_DIR/$TASHK_FILE" # The absolute path of the file
+
+case "$COMMAND" in
+	add|a) tashk_add "$@";;
+	edit|e) tashk_edit "$@";;
+	do) tashk_do "$@";;
+	rm|remove) ;;
+	ls|list|show) tashk_ls "$@";;
+	init);;
+	git) TASHK_SILENCE_GIT=false && shift 1 && _git "$@";;
+	help) tashk_usage "$2";;
+	*) tashk_usage help;;
+esac
