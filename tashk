@@ -38,9 +38,9 @@ tashk_add() {
 }
 
 tashk_clean() {
-	# Deletes all completed tasks.
 	to_delete=$(grep -c '^x ' "$FILE")
-	[ "$to_delete" -eq 0 ] && echo "No tasks to clean up." >&2 && exit 2
+	to_compress=$(grep -c '^$' "$FILE")
+	[ "$to_delete" -eq 0 ] && [ "$to_compress" -eq 0 ] && echo "Nothing to clean up." >&2 && exit 2
 	# TODO: this would be a nice little safety
 #	if [ -z $force ]; then
 #		echo "Really delete $to_delete completed task(s)? (y/N)"
@@ -48,9 +48,9 @@ tashk_clean() {
 	# XXX: -i~ is a common extension, but is non-POSIX.
 	# Using it here would save a `cp`.
 	cp "$FILE" "$FILE~"
-	sed '/^x /d' "$FILE~" > "$FILE"
-	echo "$to_delete task(s) deleted from $TASHK_FILE."
-	_git commit -m "Removed $to_delete completed tasks from $TASHK_FILE" "$FILE"
+	sed '/^x /d;/^$/d' "$FILE~" > "$FILE"
+	echo "$to_delete task(s) and $to_compress empty lines deleted from $TASHK_FILE."
+	_git commit -m "Removed $to_delete completed tasks, $to_compress empty lines from $TASHK_FILE" "$FILE"
 }
 
 tashk_do() {
@@ -89,7 +89,7 @@ tashk_usage() {
 "Edits todo.txt in your favourite terminal editor." >&2 ;;
 		clean)
 			echo \
-"Deletes completed tasks from the todofile.
+"Deletes completed tasks and empty lines from the todofile
 Stores a 'backup' in $TASHK_FILE~, but this will get
 overwritten by the next operation." >&2;;
 		do)
