@@ -80,21 +80,21 @@ tashk_edit() {
 
 tashk_usage() {
 	case "$1" in
-		add)
+		add|a)
 			echo "Unimplemented." >&2;;
-		edit)
+		edit|e)
 			echo \
 "Edits todo.txt in your favourite terminal editor." >&2 ;;
-		clean)
+		clean|c)
 			echo \
 "Deletes completed tasks and empty lines from the todofile
 Stores a 'backup' in $TASHK_FILE~, but this will get
 overwritten by the next operation." >&2;;
-		do)
+		do|d|x)
 			echo "Unimplemented." >&2;;
-		remove)
+		rm|remove)
 			echo "Unimplemented." >&2;;
-		ls)
+		ls|list|show)
 			echo "Lists tasks with 'nl -ba'." >&2;;
 		init)
 			echo "Unimplemented." >&2;;
@@ -152,7 +152,7 @@ case "$COMMAND" in
 	add|a) tashk_add "$@";;
 	clean|c) tashk_clean "$@";;
 	edit|e) tashk_edit "$@";;
-	do) tashk_do "$@";;
+	do|x|d) tashk_do "$@";;
 	rm|remove) ;;
 	ls|list|show) tashk_ls "$@";;
 	init);;
