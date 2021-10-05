@@ -37,15 +37,32 @@ tashk_add() {
 	_git commit -m "\"$task\" (no. $task_no) added to $TASHK_FILE" "$FILE"
 }
 
+tashk_clean() {
+	# Deletes all completed tasks.
+	to_delete=$(grep -c '^x ' "$FILE")
+	[ "$to_delete" -eq 0 ] && echo "No tasks to clean up." >&2 && exit 2
+	# TODO: this would be a nice little safety
+#	if [ -z $force ]; then
+#		echo "Really delete $to_delete completed task(s)? (y/N)"
+#	fi
+	# XXX: -i~ is a common extension, but is non-POSIX.
+	# Using it here would save a `cp`.
+	cp "$FILE" "$FILE~"
+	sed '/^x /d' "$FILE~" > "$FILE"
+	echo "$to_delete task(s) deleted from $TASHK_FILE."
+	_git commit -m "Removed $to_delete completed tasks from $TASHK_FILE" "$FILE"
+}
+
 tashk_do() {
 	# Mark task as completed.
 	task_no=$2
 	task=$(sed "$task_no!d" "$FILE")
 	echo "You wanted to do task $task_no, $task, but I haven't figured out the sed script yet..."
 	# TODO: write a sed script that transforms a line to its completed form
+#	cp "$FILE" "$FILE~"
 #	sed \
 #"
-#" "$FILE"
+#" "$FILE~" > "$FILE"
 #	_git commit -m "Marked task $task_no as complete - $task"
 }
 
@@ -65,30 +82,46 @@ tashk_edit() {
 
 tashk_usage() {
 	case "$1" in
-		add) echo "Unimplemented." >&2;;
-		edit) echo "Edits todo.txt. Not done." >&2 ;;
-		do) ;;
-		remove) ;;
-		ls) ;;
-		init) ;;
-		git) ;;
-		*) echo \
+		add)
+			echo "Unimplemented." >&2;;
+		edit)
+			echo \
+"Edits todo.txt in your favourite terminal editor." >&2 ;;
+		clean)
+			echo \
+"Deletes completed tasks from the todofile.
+Stores a 'backup' in $TASHK_FILE~, but this will get
+overwritten by the next operation." >&2;;
+		do)
+			echo "Unimplemented." >&2;;
+		remove)
+			echo "Unimplemented." >&2;;
+		ls)
+			echo "Lists tasks with 'cat -n'." >&2;;
+		init)
+			echo "Unimplemented." >&2;;
+		git)
+			echo "Runs git and passes all arguments to it verbatim." >&2;;
+		*)
+			echo \
 "tashk: the unix todo.txt manager
 Usage: tashk [-v] [-f todofile] [command] [command_flags] command_args...
   '-v' toggles git output (supressed by default)
   '-f todofile' indicates which todo file to use, default todo.txt
-Command flags are command-specific.
-Command flag parsing stops at the first non-flag argument.
+Command flags are command-specific, but always stop at the first non-flag argument.
 
 Command must be one of the following:
 	add: Read and add a new task from stdin
+	clean: Delete all completed tasks (creates backup)
 	edit: Edit todofile in text editor
-	do: Mark a task as complete
-	remove: Delete a task
+	do: Mark a task as complete (creates backup)
+	remove: Delete a task (creates backup)
 	ls: List all tasks, with numbers
 	init: ???
-	git: Call 'git' from within \$TASHKDIR and always print output
+	git: Call 'git' from within \$TASHK_DIR and always print output
 	help: display this usage message
+Commands marked 'creates backup' copies the todofile to '\$TASHK_DIR/todofile~',
+overwriting anything that was already there (i.e. older backups).
 For help with specific commands, do 'tashk help <command>'" >&2;;
 	esac
 }
@@ -116,8 +149,10 @@ TASHK_SILENCE_GIT=${TASHK_SILENCE_GIT:-true}
 TASHK_FILE="${TASHK_FILE:-todo.txt}" # The name of the file
 FILE="$TASHK_DIR/$TASHK_FILE" # The absolute path of the file
 
+# TODO: Add a _git pull here
 case "$COMMAND" in
 	add|a) tashk_add "$@";;
+	clean|c) tashk_clean "$@";;
 	edit|e) tashk_edit "$@";;
 	do) tashk_do "$@";;
 	rm|remove) ;;
