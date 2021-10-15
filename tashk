@@ -68,7 +68,7 @@ tashk_do() {
 
 tashk_ls() {
 	# TODO: support for pre- and post-processing
-	nl -ba "$FILE"
+	nl -ba -w2 -s' ' "$FILE"
 }
 
 tashk_edit() {
