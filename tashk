@@ -29,7 +29,7 @@ tashk_add() {
 	read -r task
 	if [ -z "$task" ]; then
 		echo "No task entered, aborting..." >&2
-		exit 2
+		return 2
 	fi
 	# TODO: add ability to toggle priority + date handling with flags
 	priority=$(echo "$task" | grep '^([A-Z])')
@@ -55,7 +55,7 @@ tashk_add() {
 tashk_clean() {
 	to_delete=$(grep -c '^x ' "$FILE")
 	to_compress=$(grep -c '^$' "$FILE")
-	[ "$to_delete" -eq 0 ] && [ "$to_compress" -eq 0 ] && echo "Nothing to clean up." >&2 && exit 2
+	[ "$to_delete" -eq 0 ] && [ "$to_compress" -eq 0 ] && echo "Nothing to clean up." >&2 && return 2
 	# TODO: this would be a nice little safety
 #	if [ -z $force ]; then
 #		echo "Really delete $to_delete completed task(s)? (y/N)"
