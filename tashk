@@ -23,13 +23,28 @@ toggle_silent() {
 }
 
 tashk_add() {
-	# TODO: Add some useful preprocessing (add dates, add priority...)
-	echo "Enter the new task." >&2
+	[ -n "$ISODATE" ] && datemsg=" (Date will be entered automatically.)"
+	echo "Enter the new task.$datemsg" >&2
+
 	read -r task
 	if [ -z "$task" ]; then
 		echo "No task entered, aborting..." >&2
 		exit 2
 	fi
+	# TODO: add ability to toggle priority + date handling with flags
+	priority=$(echo "$task" | grep '^([A-Z])')
+	if [ -n "$priority" ]; then
+		priority="${priority%% *} "
+		echo "Detected priority: $priority" >&2
+		task="${task##"$priority"}"
+	fi
+	# TODO: check if the user gave a date?
+	if [ -n "$ISODATE" ]; then
+		task="$priority$ISODATE $task"
+	else
+		task="$priority$task"
+	fi
+
 	echo "$task" >> "$FILE"
 	task_no=$(wc -l "$FILE")
 	task_no=${task_no%%" $FILE"}
