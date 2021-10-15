@@ -72,13 +72,24 @@ tashk_do() {
 	# Mark task as completed.
 	task_no=$2
 	task=$(sed "$task_no!d" "$FILE")
-	echo "You wanted to do task $task_no, $task, but I haven't figured out the sed script yet..."
-	# TODO: write a sed script that transforms a line to its completed form
-#	cp "$FILE" "$FILE~"
-#	sed \
-#"
-#" "$FILE~" > "$FILE"
-#	_git commit -m "Marked task $task_no as complete - $task"
+	[ "${task%% *}" = "x" ] && echo "Can't do a done task!" && return 1
+
+	# TODO: add a way of disabling adding the date?
+	taskdone=$(echo "$task" | sed "\
+		s/^(\([A-Z]\)) \(.*\)/\2 pri:\1/;\
+		s/^\(.*\)/x $ISODATE \1/;")
+
+	cp "$FILE" "$FILE~"
+	sed "$task_no c\
+		$taskdone" "$FILE~" > "$FILE"
+
+	fail=$?
+	if [ "$fail" -ne 0 ]; then
+		cp "$FILE~" "$FILE"
+		echo "ERROR: sed failed with error code $fail" >&2
+		return $fail
+	fi
+	_git commit -m "Marked task $task_no as complete - $taskdone" "$FILE"
 }
 
 tashk_ls() {
