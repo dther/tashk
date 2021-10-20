@@ -30,32 +30,41 @@ strike='[9m'
 clr='[0m'
 sed "
 	# Find priorities
-	/^(A)/s/^\(.*\)$/<<<A>>>\1/
-	/^(B)/s/^\(.*\)$/<<<B>>>\1/
-	/^(C)/s/^\(.*\)$/<<<C>>>\1/
-	/^(D)/s/^\(.*\)$/<<<D>>>\1/
+	/^([[:upper:]]) /s/^(\([[:upper:]]\)) \(.*\)$/<tty:\1>(\1) \2/
 
 	# find completed
-	/^x/s/^\(.*\)$/<<<x>>>\1/
+	/^x/s/^\(.*\)$/<tty:x>\1/
 
 	# projects + contexts
-	s/ \(+[[:graph:]]*\)/ $magenta\1<<<ATTR>>>/g
-	s/ \(@[[:graph:]]*\)/ $green\1<<<ATTR>>>/g
+	s/ \(+[[:graph:]]*\)/ <tty:proj>\1<tty:clr>/g
+	s/ \(@[[:graph:]]*\)/ <tty:cont>\1<tty:clr>/g
 
-	# change <<<ATTR>>> to correct default line attributes
-	/<<<A>>>/s/<<<ATTR>>>/<<<A>>>/g
-	/<<<B>>>/s/<<<ATTR>>>/<<<B>>>/g
-	/<<<C>>>/s/<<<ATTR>>>/<<<C>>>/g
-	/<<<D>>>/s/<<<ATTR>>>/<<<D>>>/g
-	/<<<x>>>/s/<<<ATTR>>>/<<<x>>>/g
-	s/<<<ATTR>>>/$clr/g; # default
+	# change <tty:clr> to correct default line attributes
+	# FIXME: Priorities must be added here manually in order
+	#        to work properly with projects and contexts.
+	/<tty:A>/s/<tty:clr>/<tty:A>/g
+	/<tty:B>/s/<tty:clr>/<tty:B>/g
+	/<tty:C>/s/<tty:clr>/<tty:C>/g
+	/<tty:D>/s/<tty:clr>/<tty:D>/g
 
-	# change <<<foo>>> tags to an appropriate escape sequence
-	s/<<<A>>>/$bred/g
-	s/<<<B>>>/$byellow/g
-	s/<<<C>>>/$bblue/g
-	s/<<<D>>>/$bold/g
-	s/<<<x>>>/$bblack$strike/g
+	# Default to whatever Z is if priorities aren't explicitly
+	# handled above.
+	/<tty:[[:upper:]]>/s/<tty:clr>/<tty:Z>/g
+
+	/<tty:x>/s/<tty:clr>/<tty:x>/g
+	s/<tty:clr>/$clr/g; # default
+
+	# change <tty:-> tags to an appropriate escape sequence
+	s/<tty:A>/$bred/g
+	s/<tty:B>/$byellow/g
+	s/<tty:C>/$bblue/g
+	s/<tty:D>/$bmagenta/g
+	s/<tty:[[:upper:]]>/$bold/g # default for unset priorities
+
+	s/<tty:x>/$bblack$strike/g
+
+	s/<tty:proj>/$magenta/g
+	s/<tty:cont>/$green/g
 
 	# clear on newline
 	s/$/$clr/
