@@ -33,7 +33,7 @@ sed "
 	/^([[:upper:]]) /s/^(\([[:upper:]]\)) \(.*\)$/<tty:\1>(\1) \2/
 
 	# find completed
-	/^x/s/^\(.*\)$/<tty:x>\1/
+	/^x /s/^\(.*\)$/<tty:x>\1/
 
 	# projects + contexts
 	s/ \(+[[:graph:]]*\)/ <tty:proj>\1<tty:clr>/g
