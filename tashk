@@ -48,7 +48,7 @@ tashk_add() {
 	echo "$task" >> "$FILE"
 	task_no=$(wc -l "$FILE")
 	task_no=${task_no%%" $FILE"}
-	echo "Added \"$task\" as task no. $task_no"
+	echo "Added \"$task\" as task no. $task_no" >&2
 	_git commit -m "\"$task\" (no. $task_no) added to $TASHK_FILE" "$FILE"
 }
 
@@ -150,27 +150,39 @@ For help with specific commands, do 'tashk help <command>'" >&2;;
 	esac
 }
 
+#shellcheck disable=2034
+tashk_getopts() {
+	# Set variables based on flags given
+	# "$COMMAND_FLAGS" should be set to a valid getopts string
+	# v and f: are always valid and reset whatever the default was
+	while getopts "vf:$COMMAND_FLAGS" flag; do
+		case "$flag" in
+			#a) aflag=1; aarg="$OPTARG" ;;
+			v) toggle_silent;;
+			f) TASHK_FILE=$OPTARG;;
+			p) pflag=true; parg=$OPTARG;;
+			?) tashk_usage "$COMMAND"; exit 2;;
+		esac
+		OPTARG=""
+	done
+}
+
 
 #shellcheck disable=2034
 PROGRAM=${0##*/}
 
-# Each command should implement its own getopts.
-# See getopts(1p) for a good working example for POSIX getopts.
-while getopts "vf:" flag; do
-	case "$flag" in
-		v) toggle_silent;;
-		f) TASHK_FILE=$OPTARG;;
-		?) tashk_usage && exit 2;;
-	esac
-done
+# Quit if we don't have any arguments
+[ "$#" -lt 1 ] && tashk_usage && exit 2
+
+# Get options that will apply by default
+tashk_getopts "$@"
 shift $(( OPTIND - 1 ))
 COMMAND=$1
 
 # Set Defaults
-#shellcheck disable=2034
 ISODATE=$(date '+%Y-%m-%d') # ISO standard date format, used by the format
 TASHK_SILENCE_GIT=${TASHK_SILENCE_GIT:-true}
-TASHK_FILE="${TASHK_FILE:-todo.txt}" # The name of the file
+TASHK_FILE="${TASHK_FILE:-todo.txt}" # The name of the file - todo.txt by default
 FILE="$TASHK_DIR/$TASHK_FILE" # The absolute path of the file
 
 # TODO: Add a _git pull here
