@@ -115,6 +115,17 @@ tashk_edit() {
 	_git commit -m "tashk edit on $TASHK_FILE" "$FILE"
 }
 
+tashk_sort() {
+	# The todo.txt file standard's rationale for sorting
+	# is only correct when characters are sorted in ASCII/UTF8 order.
+	# Annoyingly, POSIX sort requires that it changes sort behaviour based on locale.
+	# Even in English locales (e.g. en_AU, en_US), they sort Numbers->Letters->Symbols,
+	# Rather than the sane default of ASCII/UTF8 character set order.
+	# (most) ASCII Symbols -> Numbers -> Letters
+	LC_ALL=POSIX sort "$FILE" -o "$FILE"
+	_git commit -m "Sorted $TASHK_FILE" "$FILE"
+}
+
 tashk_usage() {
 	case "$1" in
 		add|a)
@@ -153,6 +164,7 @@ Command must be one of the following:
 	remove: Delete a task (creates backup)
 	ls: List all tasks, with numbers
 	init: ???
+	sort: sort by character set (i.e. Priority items first, done items last)
 	git: Call 'git' from within \$TASHK_DIR and always print output
 	help: display this usage message
 Commands marked 'creates backup' copies the todofile to '\$TASHK_DIR/todofile~',
@@ -205,6 +217,7 @@ case "$COMMAND" in
 	rm|remove) ;;
 	ls|list|show) tashk_ls "$@";;
 	init);;
+	sort|s) tashk_sort "$@";;
 	git) TASHK_SILENCE_GIT=false && shift 1 && _git "$@";;
 	help) tashk_usage "$2";;
 	*) tashk_usage help;;
