@@ -138,7 +138,7 @@ Uses \$EDITOR, or vi if unset." >&2 ;;
 		clean|c)
 			echo \
 "Deletes completed tasks and empty lines from the todofile
-Stores a 'backup' in \$TASHK_FILE~, but this will get
+Stores a 'backup' in $TASHK_FILE~, but this will get
 overwritten by the next operation." >&2;;
 		do|d|x)
 			echo "Unimplemented." >&2;;
