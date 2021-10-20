@@ -189,6 +189,7 @@ tashk_getopts() {
 		esac
 		OPTARG=""
 	done
+	FILE="$TASHK_DIR/$TASHK_FILE"
 }
 
 
