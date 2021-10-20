@@ -93,8 +93,19 @@ tashk_do() {
 }
 
 tashk_ls() {
-	# TODO: support for pre- and post-processing
-	nl -ba -w2 -s' ' "$FILE"
+	# check for prefilter
+	shift 1
+	parg=''
+	pflag='false'
+	COMMAND_FLAGS='p:'
+	tashk_getopts "$@"
+
+	if [ -z "$parg" ]; then
+		nl -ba -w2 -s' ' "$FILE"
+	else
+		$parg < "$FILE" | nl -ba -w2 -s' '
+	fi
+
 }
 
 tashk_edit() {
@@ -121,7 +132,7 @@ overwritten by the next operation." >&2;;
 		rm|remove)
 			echo "Unimplemented." >&2;;
 		ls|list|show)
-			echo "Lists tasks with 'nl -ba'." >&2;;
+			echo "Lists tasks with 'nl -ba'. Preprocess the tashk file using the flag -p <program>." >&2;;
 		init)
 			echo "Unimplemented." >&2;;
 		git)
