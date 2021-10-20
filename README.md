@@ -1,6 +1,6 @@
 # tashk, the unix todo.txt manager
 
-tashk is a minimal CLI for dealing with todo.txt files.
+tashk is a minimal CLI for dealing with [todo.txt][#todotxt] files.
 It assumes POSIX utilities (sh, cat, grep, sed, etc),
 and deeply integrates with `git`.
 
@@ -19,6 +19,15 @@ drop-in replacement. `tashk help` should tell you everything you need to know.
 
 In summary, it's like `todo.sh` but more `pass`-like.
 
+## LICENSE
+
+(c) Rudy Dellomas III. GPL'd. See LICENSE in the root folder of this repository.
+No warranty, etc.
+
+If you want to use this for something that can't be GPL'd:
+Firstly, why would you use this?
+Secondly, drop me an email, I'm willing to negotiate an exception.
+
 ## Getting started
 
  1. Make a git repository somewhere.
@@ -29,7 +38,7 @@ In summary, it's like `todo.sh` but more `pass`-like.
 Many. But in particular:
 
  - No internal directories, yet. All todo.txt files must be on the top level.
- - Only `edit` is properly implemented.
+ - No subcommand flags exist (except for ls prefiltering `-p`)
 
 ## Tips and Tricks
 ### How can I make this run faster?
@@ -54,7 +63,8 @@ It can be github, gitlab, whatever, but ideally it should be a bare repository
 on a computer you own or a VPS you have root access on.
 
 The caveat to this, of course, is that it means all commits get pushed
-immediately, making `--force` the only real way to delete commits.
+immediately, meaning that it's a real headache to try and rewrite git history.
+(On top of rewriting git history being a whole headache in and of itself.)
 This isn't as much a problem since this is a personal organisation program,
 so I hope you aren't using a public repo...
 
@@ -65,6 +75,11 @@ In your crontab/cron.d/systemd script pile, put:
 
 Then configure your system to do that command however often you please to
 automatically write your changes to origin whenever a certain time occurs.
+Be sure to have some way of authenticating yourself to the remote repository.
+Haven't figured it out yet...
+
+> NOTE: cron acts funny, since it's not "really" you when it runs commands.
+> be sure to explicitly set $TASHKDIR *in* the crontab.
 
 ### How do I do that whenever...
 I think you get the picture from the last two tips. Git is really neat.
@@ -79,3 +94,5 @@ super cool open source dropbox alternative.
  - pretty listing
  - better arg support
  - extension system
+
+[#todotxt]:https://todotxt.org/

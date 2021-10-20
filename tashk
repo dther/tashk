@@ -1,4 +1,5 @@
 #!/bin/sh
+# (c) Rudy Dellomas III, GPLv3. See LICENSE file at root of repository.
 
 [ -z "$TASHK_DIR" ] && echo 'Please set TASHK_DIR.' >&2 && exit 1
 [ "$(id -u)" = "root" ] && echo 'Running this as root is a bad idea!' >&2 && exit 1

@@ -1,4 +1,6 @@
 #!/bin/sh
+# (c) Rudy Dellomas III, GPLv3. See LICENSE file at root of repository.
+
 # Use ANSI escape codes to colourise tashk.
 # obv. assumes that these escape codes work
 # NOTE: for "done" tasks to work properly,
