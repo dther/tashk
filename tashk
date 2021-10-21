@@ -146,7 +146,18 @@ overwritten by the next operation." >&2;;
 		rm|remove)
 			echo "Unimplemented." >&2;;
 		ls|list|show)
-			echo "Lists tasks with 'nl -ba'. Preprocess the tashk file using the flag -p <program>." >&2;;
+			echo \
+"Usage: $PROGRAM ls [-p prefilter]
+	Lists tasks using command 'nl(1p)'.
+
+FLAGS:
+	'-p prefilter' - Passes $TASHK_FILE through the stdin of the command
+			 'prefilter' before passing the output to nl(1p).
+			 The latest invocation will be the one used.
+
+ENVIRONMENT VARIABLES:
+	\$TASHK_LS_PREFILTER can be used to set a default prefilter even
+	when the -p flag is not set." >&2;;
 		init)
 			echo "Unimplemented." >&2;;
 		git)
@@ -154,7 +165,7 @@ overwritten by the next operation." >&2;;
 		*)
 			echo \
 "tashk: the unix todo.txt manager
-Usage: tashk [-v] [-f todofile] [command] [command_flags] command_args...
+Usage: $PROGRAM [-v] [-f todofile] [command] [command_flags] command_args...
   '-v' toggles git output (supressed by default)
   '-f todofile' indicates which todo file to use, default todo.txt
 Command flags are command-specific, but always stop at the first non-flag argument.
@@ -204,7 +215,6 @@ tashk_getopts() {
 }
 
 
-#shellcheck disable=2034
 PROGRAM=${0##*/}
 
 # Quit if we don't have any arguments
