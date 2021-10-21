@@ -101,7 +101,6 @@ tashk_ls() {
 	tashk_getopts "$@"
 	[ -n "$parg" ] && TASHK_LS_PREFILTER="$parg" # "$TASHK_LS_PREFILTER" can be set to a default
 
-	echo "$pflag"
 	if [ -z "$TASHK_LS_PREFILTER" ]; then
 		nl -ba -w2 -s' ' "$FILE"
 	else
