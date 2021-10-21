@@ -119,11 +119,11 @@ tashk_edit() {
 
 tashk_sort() {
 	# The todo.txt file standard's rationale for sorting
-	# is only correct when characters are sorted in ASCII/UTF8 order.
-	# Annoyingly, POSIX sort requires that it changes sort behaviour based on locale.
-	# Even in English locales (e.g. en_AU, en_US), they sort Numbers->Letters->Symbols,
-	# Rather than the sane default of ASCII/UTF8 character set order.
-	# (most) ASCII Symbols -> Numbers -> Letters
+	# is most correct when characters are sorted in ASCII/UTF8 order.
+	# This causes the sort order of
+	# Priorities -> dated tasks -> (most) undated tasks -> completed tasks.
+	# Tasks that start with y, z and emojis are right out.
+	# TODO: add some kind of override?
 	LC_ALL=POSIX sort "$FILE" -o "$FILE"
 	_git commit -m "Sorted $TASHK_FILE" "$FILE"
 }
@@ -131,24 +131,39 @@ tashk_sort() {
 tashk_usage() {
 	case "$1" in
 		add|a)
-			echo "Unimplemented." >&2;;
+			echo \
+"Usage: $PROGRAM add
+	Reads a task from stdin,
+	prepends the current date in the correct space,
+	and adds the task to $TASHK_FILE.
+	Handles priorities gracefully, but not dates.
+	Do not enter a date in yourself! Fixing this is a planned feature..." >&2;;
 		edit|e)
 			echo \
-"Edits todo.txt in your favourite terminal editor.
-Uses \$EDITOR, or vi if unset." >&2 ;;
+"Usage: $PROGRAM edit
+	Edits todo.txt in your favourite terminal editor.
+
+ENVIRONMENT VARIABLES:
+	Uses \$EDITOR, or vi if unset." >&2 ;;
 		clean|c)
 			echo \
-"Deletes completed tasks and empty lines from the todofile
-Stores a 'backup' in $TASHK_FILE~, but this will get
-overwritten by the next operation." >&2;;
+"Usage: $PROGRAM clean
+	Deletes completed tasks and empty lines from the todofile
+	Stores a 'backup' in $TASHK_FILE~." >&2;;
 		do|d|x)
-			echo "Unimplemented." >&2;;
-		rm|remove)
-			echo "Unimplemented." >&2;;
+			echo \
+"Usage: $PROGRAM do
+	Marks a task as complete.
+	Strips the priority (and stores it in a key:val tag)
+	and prepends 'x <today's date> '.
+	Does nothing to tasks that are already completed,
+	which in this context means any line that starts with 'x ',
+	as per spec.
+	Stores a 'backup' in $TASHK_FILE~." >&2;;
 		ls|list|show)
 			echo \
 "Usage: $PROGRAM ls [-p prefilter]
-	Lists tasks using command 'nl(1p)'.
+	Lists tasks using command 'nl'. See nl(1p).
 
 FLAGS:
 	'-p prefilter' - Passes $TASHK_FILE through the stdin of the command
@@ -158,10 +173,19 @@ FLAGS:
 ENVIRONMENT VARIABLES:
 	\$TASHK_LS_PREFILTER can be used to set a default prefilter even
 	when the -p flag is not set." >&2;;
-		init)
-			echo "Unimplemented." >&2;;
 		git)
-			echo "Runs git and passes all arguments to it verbatim." >&2;;
+			echo \
+"Usage: $PROGRAM git [...]
+	Runs git and passes all arguments to it verbatim.
+	See the manpage git(1)." >&2;;
+		sort)
+			echo \
+"Usage: $PROGRAM sort
+	Performs a sort on the contents of $TASHK_FILE.
+	Locale will be set to POSIX for portability,
+	as this ensures that the sort will be according to character codes
+	rather than alphanumeric sorts that can vary even within
+	English locales." >&2;;
 		*)
 			echo \
 "tashk: the unix todo.txt manager
@@ -170,19 +194,8 @@ Usage: $PROGRAM [-v] [-f todofile] [command] [command_flags] command_args...
   '-f todofile' indicates which todo file to use, default todo.txt
 Command flags are command-specific, but always stop at the first non-flag argument.
 
-Command must be one of the following:
-	add: Read and add a new task from stdin
-	clean: Delete all completed tasks (creates backup)
-	edit: Edit todofile in text editor
-	do: Mark a task as complete (creates backup)
-	remove: Delete a task (creates backup)
-	ls: List all tasks, with numbers
-	init: ???
-	sort: sort by character set (i.e. Priority items first, done items last)
-	git: Call 'git' from within \$TASHK_DIR and always print output
-	help: display this usage message
-Commands marked 'creates backup' copies the todofile to '\$TASHK_DIR/todofile~',
-overwriting anything that was already there (i.e. older backups).
+Valid commands are:
+	add, clean, edit, do, ls, sort, git, help
 For help with specific commands, do 'tashk help <command>'" >&2;;
 	esac
 }
