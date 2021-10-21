@@ -29,7 +29,7 @@ strike='[9m'
 
 clr='[0m'
 sed "
-	# Find priorities
+	# Find priorities, mark their lines with <tty:A-Z> as appropriate
 	/^([[:upper:]]) /s/^(\([[:upper:]]\)) \(.*\)$/<tty:\1>(\1) \2/
 
 	# find completed
@@ -40,16 +40,12 @@ sed "
 	s/ \(@[[:graph:]]*\)/ <tty:cont>\1<tty:clr>/g
 
 	# change <tty:clr> to correct default line attributes
-	# FIXME: Priorities must be added here manually in order
-	#        to work properly with projects and contexts.
-	/<tty:A>/s/<tty:clr>/<tty:A>/g
-	/<tty:B>/s/<tty:clr>/<tty:B>/g
-	/<tty:C>/s/<tty:clr>/<tty:C>/g
-	/<tty:D>/s/<tty:clr>/<tty:D>/g
-
-	# Default to whatever Z is if priorities aren't explicitly
-	# handled above.
-	/<tty:[[:upper:]]>/s/<tty:clr>/<tty:Z>/g
+	/<tty:[[:upper:]]>/{
+		# Keep repeating this until all <tty:clr>s are replaced
+		: findnext
+		s/<tty:\([[:upper:]]\)>\(.*\)<tty:clr>/<tty:\1>\2<tty:\1>/g
+		t findnext
+	}
 
 	/<tty:x>/s/<tty:clr>/<tty:x>/g
 	s/<tty:clr>/$clr/g; # default
@@ -59,7 +55,7 @@ sed "
 	s/<tty:B>/$byellow/g
 	s/<tty:C>/$bblue/g
 	s/<tty:D>/$bmagenta/g
-	s/<tty:[[:upper:]]>/$bold/g # default for unset priorities
+	s/<tty:[[:upper:]]>/$bwhite/g # default for unset priorities
 
 	s/<tty:x>/$bblack$strike/g
 
