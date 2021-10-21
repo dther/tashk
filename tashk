@@ -94,17 +94,18 @@ tashk_do() {
 }
 
 tashk_ls() {
-	# check for prefilter
+	# opts: -p: prefilter through command
 	shift 1
-	parg=''
-	pflag='false'
+	parg=''; pflag='0' # set defaults
 	COMMAND_FLAGS='p:'
 	tashk_getopts "$@"
+	[ -n "$parg" ] && TASHK_LS_PREFILTER="$parg" # "$TASHK_LS_PREFILTER" can be set to a default
 
-	if [ -z "$parg" ]; then
+	echo "$pflag"
+	if [ -z "$TASHK_LS_PREFILTER" ]; then
 		nl -ba -w2 -s' ' "$FILE"
 	else
-		$parg < "$FILE" | nl -ba -w2 -s' '
+		$TASHK_LS_PREFILTER < "$FILE" | nl -ba -w2 -s' '
 	fi
 
 }
@@ -180,12 +181,21 @@ tashk_getopts() {
 	# Set variables based on flags given
 	# "$COMMAND_FLAGS" should be set to a valid getopts string
 	# v and f: are always valid and reset whatever the default was
+
+	# Arguments that aren't v: or :f are handled as follows.
+	# Their presence is stored in a variable known as $xflag,
+	# where x is the character of that flag. Repeated invocations will
+	# toggle $xflag between 1 and 0, with 1 meaning an odd total of invocations.
+	# This allows for the "toggling" of a default flag by simply invoking it again.
+
+	# If the flag takes a particular argument, it will be stored in $xarg.
+	# $xarg will *always be empty* if not configured to take an argument.
 	while getopts "vf:$COMMAND_FLAGS" flag; do
 		case "$flag" in
 			#a) aflag=1; aarg="$OPTARG" ;;
 			v) toggle_silent;;
 			f) TASHK_FILE=$OPTARG;;
-			p) pflag=true; parg=$OPTARG;;
+			p) [ "$pflag" != '0' ]; pflag=$?; parg=$OPTARG;;
 			?) tashk_usage "$COMMAND"; exit 2;;
 		esac
 		OPTARG=""
