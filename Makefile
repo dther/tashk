@@ -17,3 +17,4 @@ install:
 
 link:
 	ln -s "${PWD}/tashk" "${HOME}/bin/tashk"
+	ln -s "${PWD}/tashkcolor.sh" "${HOME}/bin/tashkcolor.sh"
