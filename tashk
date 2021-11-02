@@ -109,6 +109,27 @@ tashk_ls() {
 
 }
 
+tashk_move() {
+	# No options for now
+	shift 1
+	tashk_getopts "$@"
+	to_move=""
+	for arg do
+		# This is useful for detecting numbers... Hm.
+		case "$arg" in
+			''|*[!0-9]*)
+				# TODO: move them tasks
+				echo "TODO: move $to_move to file $arg"
+				to_move=""
+				;;
+			*) 
+				to_move="$to_move $arg"
+				echo "$arg"
+				;;
+		esac
+	done
+}
+
 tashk_edit() {
 	# open in editor. vi if unspecified.
 	EDITOR="${EDITOR:-vi}"
@@ -249,6 +270,7 @@ case "$COMMAND" in
 	clean|c) tashk_clean "$@";;
 	edit|e) tashk_edit "$@";;
 	do|x|d) tashk_do "$@";;
+	move|mv) tashk_move "$@" ;;
 	#rm|remove) ;;
 	ls|list|show) tashk_ls "$@";;
 	#init);;
