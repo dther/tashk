@@ -249,9 +249,9 @@ case "$COMMAND" in
 	clean|c) tashk_clean "$@";;
 	edit|e) tashk_edit "$@";;
 	do|x|d) tashk_do "$@";;
-	rm|remove) ;;
+	#rm|remove) ;;
 	ls|list|show) tashk_ls "$@";;
-	init);;
+	#init);;
 	sort|s) tashk_sort "$@";;
 	git) TASHK_SILENCE_GIT=false && shift 1 && _git "$@";;
 	help) tashk_usage "$2";;
