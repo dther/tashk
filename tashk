@@ -120,7 +120,7 @@ tashk_move() {
 		case "$arg" in
 			''|*[!0-9]*)
 				# Move all tasks listed up until now
-				# split arguments so that we can use it as a list
+				# split arguments for use as a list
 				# shellcheck disable=2086
 				tashk_move_now "$arg" $to_move
 				to_move=""
@@ -128,7 +128,6 @@ tashk_move() {
 			*) 
 				[ -n "$to_move" ] && to_move="$to_move $arg"
 				[ -z "$to_move" ] && to_move="$arg"
-				echo "$arg"
 				;;
 		esac
 	done
@@ -136,19 +135,27 @@ tashk_move() {
 
 # helper function for tashk_move
 tashk_move_now() {
-	destination=$1
-	if ! [ -f "$TASHK_DIR/$destination" ]; then
-		echo "ERROR: todofile $destination doesn't exist..." >&2
+	destination="$TASHK_DIR/$1"
+	if ! [ -f "$destination" ]; then
+		echo "ERROR: todofile $1 doesn't exist" >&2
 		return 1
 	fi
+	# Everything left is a task number
 	shift 1
 	# no tasks to move!
 	if ! [ "$#" -gt 0 ]; then
 		echo "ERROR: No tasks to move to $destination" >&2
 		return 1
 	fi
-	echo "helper sees: $#"
-	return 0
+
+	# TODO: investigate: do all of this with one sed call?
+	for tasknum do
+		# XXX: could save cp's here with some creative sed -i~ 'ing.
+		cp "$FILE" "$FILE~"
+		sed "${tasknum}q;d" "$FILE~" >> "$destination"
+		# replace with empty lines to preserve task numbering
+		sed "${tasknum}s/.*//g" "$FILE~" > "$FILE"
+	done
 }
 
 tashk_edit() {
