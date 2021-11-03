@@ -223,6 +223,30 @@ FLAGS:
 ENVIRONMENT VARIABLES:
 	\$TASHK_LS_PREFILTER can be used to set a default prefilter even
 	when the -p flag is not set." >&2;;
+		move|mv)
+			echo \
+"Usage: $PROGRAM mv tasks... destination [[tasks... destination]...]
+	Moves a list of tasks to the destination file.
+
+ARGUMENTS:
+	tasks...     - One or more integers,
+	               referring to line numbers (tasks) in $TASHK_FILE.
+	destination  - An existing todofile in TASHK_DIR.
+	               Tasks will be removed from $TASHK_FILE and appended.
+
+	The [tasks... destination] pattern can be repeated to move
+	more tasks to different destinations. tashk mv will create a new
+	git commit for each set of task movements.
+
+NOTES:
+	- Leaves blank lines where tasks used to be, to avoid making
+	  old line numbers obsolete. To remove them, do 'tashk clean'.
+	- Similarly, appending to the destination files is naive-
+	  tasks are added to the end with no regard for existing empty lines.
+	- BUG: Currently, tashk mv never exits with an error.
+	  This is inconsistent with other subcommands,
+	  which will exit with an error if no changes could be detected by git.
+" >&2;;
 		git)
 			echo \
 "Usage: $PROGRAM git [...]
