@@ -150,12 +150,13 @@ tashk_move_now() {
 	for tasknum do
 		# XXX: could save cp's here with some creative sed -i~ 'ing.
 		cp "$FILE" "$FILE~"
-		sed "${tasknum}q;d" "$FILE~" >> "$destination"
+		task=$(sed "${tasknum}q;d" "$FILE~")
+		[ -n "$task" ] && echo "$task" >> "$destination"
 		# replace with empty lines to preserve task numbering
 		sed "${tasknum}s/.*//g" "$FILE~" > "$FILE"
 	done
 	_git commit -m \
-		"tashk move: $@ from $TASHK_FILE moved to $destfile"\
+		"tashk move: $# task(s) from $TASHK_FILE moved to $destfile" \
 		"$FILE" "$destination"
 }
 
