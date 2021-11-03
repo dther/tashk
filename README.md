@@ -18,11 +18,13 @@ However, it is not compatible with todo-cli and should not be used as a
 drop-in replacement. `tashk help` should tell you everything you need to know.
 
 In summary, it's like `todo.sh` but more `pass`-like.
+It's mostly feature complete, aside from perhaps more flag options
+which I'll throw in as I need them.
 
 ## LICENSE
 
 (c) Rudy Dellomas III. GPL'd. See LICENSE in the root folder of this repository.
-No warranty, etc.
+No warranty, etc. GPLv3 only.
 
 If you want to use this for something that can't be GPL'd:
 Firstly, why would you use this?
@@ -35,10 +37,7 @@ Secondly, drop me an email, I'm willing to negotiate an exception.
  3. Put your todo.txt file in there.
 
 ## Bugs
-Many. But in particular:
-
- - No internal directories, yet. All todo.txt files must be on the top level.
- - No subcommand flags exist (except for ls prefiltering `-p`)
+Probably many.
 
 ## Tips and Tricks
 ### How can I make this run faster?
