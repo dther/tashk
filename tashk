@@ -114,20 +114,41 @@ tashk_move() {
 	shift 1
 	tashk_getopts "$@"
 	to_move=""
+	# Every positive integer is a line number and therefore a task
+	# Everything else is a potential filename
 	for arg do
-		# This is useful for detecting numbers... Hm.
 		case "$arg" in
 			''|*[!0-9]*)
-				# TODO: move them tasks
-				echo "TODO: move $to_move to file $arg"
+				# Move all tasks listed up until now
+				# split arguments so that we can use it as a list
+				# shellcheck disable=2086
+				tashk_move_now "$arg" $to_move
 				to_move=""
 				;;
 			*) 
-				to_move="$to_move $arg"
+				[ -n "$to_move" ] && to_move="$to_move $arg"
+				[ -z "$to_move" ] && to_move="$arg"
 				echo "$arg"
 				;;
 		esac
 	done
+}
+
+# helper function for tashk_move
+tashk_move_now() {
+	destination=$1
+	if ! [ -f "$TASHK_DIR/$destination" ]; then
+		echo "ERROR: todofile $destination doesn't exist..." >&2
+		return 1
+	fi
+	shift 1
+	# no tasks to move!
+	if ! [ "$#" -gt 0 ]; then
+		echo "ERROR: No tasks to move to $destination" >&2
+		return 1
+	fi
+	echo "helper sees: $#"
+	return 0
 }
 
 tashk_edit() {
