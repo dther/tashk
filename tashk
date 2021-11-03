@@ -125,26 +125,24 @@ tashk_move() {
 				tashk_move_now "$arg" $to_move
 				to_move=""
 				;;
-			*) 
-				[ -n "$to_move" ] && to_move="$to_move $arg"
-				[ -z "$to_move" ] && to_move="$arg"
-				;;
+			*) [ -n "$to_move" ] && to_move="$to_move $arg" || \
+				to_move="$arg" ;;
 		esac
 	done
 }
 
 # helper function for tashk_move
 tashk_move_now() {
+	destfile="$1" # short file name
 	destination="$TASHK_DIR/$1"
 	if ! [ -f "$destination" ]; then
-		echo "ERROR: todofile $1 doesn't exist" >&2
+		echo "ERROR: todofile $destfile doesn't exist" >&2
 		return 1
 	fi
 	# Everything left is a task number
 	shift 1
-	# no tasks to move!
-	if ! [ "$#" -gt 0 ]; then
-		echo "ERROR: No tasks to move to $destination" >&2
+	if [ "$#" -eq 0 ]; then
+		echo "ERROR: No tasks to move to $destfile" >&2
 		return 1
 	fi
 
@@ -156,6 +154,9 @@ tashk_move_now() {
 		# replace with empty lines to preserve task numbering
 		sed "${tasknum}s/.*//g" "$FILE~" > "$FILE"
 	done
+	_git commit -m \
+		"tashk move: $@ from $TASHK_FILE moved to $destfile"\
+		"$FILE" "$destination"
 }
 
 tashk_edit() {
