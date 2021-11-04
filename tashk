@@ -199,6 +199,18 @@ tashk_sort() {
 	tashk_getopts "$@"
 	shift $(( OPTIND - 1 ))
 
+	# TODO: document this in tashk help
+	if [ "$1" = "all" ]; then
+		branch=$(_GIT branch --show-current)
+		files=$(_GIT ls-tree "$branch" --name-only)
+		[ -n "$files" ] || files="$TASHK_DIR/*.txt"
+		for file in $files; do
+			file="${file##$TASHK_DIR}"
+			printf "Sorting %s...\n" "$file" >&2
+			tashk_sort sort -f "$file"
+		done
+		exit $?
+	fi
 	# The todo.txt file standard's rationale for sorting
 	# is most correct when characters are sorted in ASCII/UTF8 order.
 	# This causes the sort order of
