@@ -1,8 +1,8 @@
 #!/bin/sh
 # (c) Rudy Dellomas III, GPLv3. See LICENSE file at root of repository.
 
-[ -z "$TASHK_DIR" ] && echo 'Please set TASHK_DIR.' >&2 && exit 1
-[ "$(id -u)" = "root" ] && echo 'Running this as root is a bad idea!' >&2 && exit 1
+[ -z "$TASHK_DIR" ] && printf "%s\n" 'Please set TASHK_DIR.' >&2 && exit 1
+[ "$(id -u)" = "root" ] && printf "%s\n" 'Running this as root is a bad idea!' >&2 && exit 1
 
 _git() {
 	# drop-in git replacement
@@ -25,18 +25,18 @@ toggle_silent() {
 
 tashk_add() {
 	[ -n "$ISODATE" ] && datemsg=" (Date will be entered automatically.)"
-	echo "Enter the new task.$datemsg" >&2
+	printf "%s\n" "Enter the new task.$datemsg" >&2
 
 	read -r task
 	if [ -z "$task" ]; then
-		echo "No task entered, aborting..." >&2
+		printf "%s\n" "No task entered, aborting..." >&2
 		return 2
 	fi
 	# TODO: add ability to toggle priority + date handling with flags
-	priority=$(echo "$task" | grep '^([A-Z])')
+	priority=$(printf "%s\n" "$task" | grep '^([A-Z])')
 	if [ -n "$priority" ]; then
 		priority="${priority%% *} "
-		echo "Detected priority: $priority" >&2
+		printf "%s\n" "Detected priority: $priority" >&2
 		task="${task##"$priority"}"
 	fi
 	# TODO: check if the user gave a date?
@@ -46,26 +46,26 @@ tashk_add() {
 		task="$priority$task"
 	fi
 
-	echo "$task" >> "$FILE"
+	printf "%s\n" "$task" >> "$FILE"
 	task_no=$(wc -l "$FILE")
 	task_no=${task_no%%" $FILE"}
-	echo "Added \"$task\" as task no. $task_no" >&2
+	printf "%s\n" "Added \"$task\" as task no. $task_no" >&2
 	_git commit -m "\"$task\" (no. $task_no) added to $TASHK_FILE" "$FILE"
 }
 
 tashk_clean() {
 	to_delete=$(grep -c '^x ' "$FILE")
 	to_compress=$(grep -c '^$' "$FILE")
-	[ "$to_delete" -eq 0 ] && [ "$to_compress" -eq 0 ] && echo "Nothing to clean up." >&2 && return 2
+	[ "$to_delete" -eq 0 ] && [ "$to_compress" -eq 0 ] && printf "%s\n" "Nothing to clean up." >&2 && return 2
 	# TODO: this would be a nice little safety
 #	if [ -z $force ]; then
-#		echo "Really delete $to_delete completed task(s)? (y/N)"
+#		printf "%s\n" "Really delete $to_delete completed task(s)? (y/N)"
 #	fi
 	# XXX: -i~ is a common extension, but is non-POSIX.
 	# Using it here would save a `cp`.
 	cp "$FILE" "$FILE~"
 	sed '/^x /d;/^$/d' "$FILE~" > "$FILE"
-	echo "$to_delete task(s) and $to_compress empty lines deleted from $TASHK_FILE."
+	printf "%s\n" "$to_delete task(s) and $to_compress empty lines deleted from $TASHK_FILE."
 	_git commit -m "Removed $to_delete completed tasks, $to_compress empty lines from $TASHK_FILE" "$FILE"
 }
 
@@ -73,10 +73,10 @@ tashk_do() {
 	# Mark task as completed.
 	task_no=$2
 	task=$(sed "$task_no!d" "$FILE")
-	[ "${task%% *}" = "x" ] && echo "Can't do a done task!" && return 1
+	[ "${task%% *}" = "x" ] && printf "%s\n" "Can't do a done task!" && return 1
 
 	# TODO: add a way of disabling adding the date?
-	taskdone=$(echo "$task" | sed "\
+	taskdone=$(printf "%s\n" "$task" | sed "\
 		s/^(\([A-Z]\)) \(.*\)/\2 pri:\1/;\
 		s/^\(.*\)/x $ISODATE \1/;")
 
@@ -87,7 +87,7 @@ tashk_do() {
 	fail=$?
 	if [ "$fail" -ne 0 ]; then
 		cp "$FILE~" "$FILE"
-		echo "ERROR: sed failed with error code $fail" >&2
+		printf "%s\n" "ERROR: sed failed with error code $fail" >&2
 		return $fail
 	fi
 	_git commit -m "Marked task $task_no as complete - $taskdone" "$FILE"
@@ -136,13 +136,13 @@ tashk_move_now() {
 	destfile="$1" # short file name
 	destination="$TASHK_DIR/$1"
 	if ! [ -f "$destination" ]; then
-		echo "ERROR: todofile $destfile doesn't exist" >&2
+		printf "%s\n" "ERROR: todofile $destfile doesn't exist" >&2
 		return 1
 	fi
 	# Everything left is a task number
 	shift 1
 	if [ "$#" -eq 0 ]; then
-		echo "ERROR: No tasks to move to $destfile" >&2
+		printf "%s\n" "ERROR: No tasks to move to $destfile" >&2
 		return 1
 	fi
 
@@ -151,7 +151,7 @@ tashk_move_now() {
 		# XXX: could save cp's here with some creative sed -i~ 'ing.
 		cp "$FILE" "$FILE~"
 		task=$(sed "${tasknum}q;d" "$FILE~")
-		[ -n "$task" ] && echo "$task" >> "$destination"
+		[ -n "$task" ] && printf "%s\n" "$task" >> "$destination"
 		# replace with empty lines to preserve task numbering
 		sed "${tasknum}s/.*//g" "$FILE~" > "$FILE"
 	done
@@ -181,7 +181,7 @@ tashk_sort() {
 tashk_usage() {
 	case "$1" in
 		add|a)
-			echo \
+			printf "%s\n" \
 "Usage: $PROGRAM add
 	Reads a task from stdin,
 	prepends the current date in the correct space,
@@ -189,19 +189,19 @@ tashk_usage() {
 	Handles priorities gracefully, but not dates.
 	Do not enter a date in yourself! Fixing this is a planned feature..." >&2;;
 		edit|e)
-			echo \
+			printf "%s\n" \
 "Usage: $PROGRAM edit
 	Edits todo.txt in your favourite terminal editor.
 
 ENVIRONMENT VARIABLES:
 	Uses \$EDITOR, or vi if unset." >&2 ;;
 		clean|c)
-			echo \
+			printf "%s\n" \
 "Usage: $PROGRAM clean
 	Deletes completed tasks and empty lines from the todofile
 	Stores a 'backup' in $TASHK_FILE~." >&2;;
 		do|d|x)
-			echo \
+			printf "%s\n" \
 "Usage: $PROGRAM do
 	Marks a task as complete.
 	Strips the priority (and stores it in a key:val tag)
@@ -211,7 +211,7 @@ ENVIRONMENT VARIABLES:
 	as per spec.
 	Stores a 'backup' in $TASHK_FILE~." >&2;;
 		ls|list|show)
-			echo \
+			printf "%s\n" \
 "Usage: $PROGRAM ls [-p prefilter]
 	Lists tasks using command 'nl'. See nl(1p).
 
@@ -224,7 +224,7 @@ ENVIRONMENT VARIABLES:
 	\$TASHK_LS_PREFILTER can be used to set a default prefilter even
 	when the -p flag is not set." >&2;;
 		move|mv)
-			echo \
+			printf "%s\n" \
 "Usage: $PROGRAM mv tasks... destination [[tasks... destination]...]
 	Moves a list of tasks to the destination file.
 
@@ -248,12 +248,12 @@ NOTES:
 	  which will exit with an error if no changes could be detected by git.
 " >&2;;
 		git)
-			echo \
+			printf "%s\n" \
 "Usage: $PROGRAM git [...]
 	Runs git and passes all arguments to it verbatim.
 	See the manpage git(1)." >&2;;
 		sort)
-			echo \
+			printf "%s\n" \
 "Usage: $PROGRAM sort
 	Performs a sort on the contents of $TASHK_FILE.
 	Locale will be set to POSIX for portability,
@@ -261,7 +261,7 @@ NOTES:
 	rather than alphanumeric sorts that can vary even within
 	English locales." >&2;;
 		*)
-			echo \
+			printf "%s\n" \
 "tashk: the unix todo.txt manager
 Usage: $PROGRAM [-v] [-f todofile] [command] [command_flags] command_args...
   '-v' toggles git output (supressed by default)
