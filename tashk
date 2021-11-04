@@ -15,6 +15,11 @@ _git() {
 	fi
 }
 
+_GIT() {
+	# unsilenced git
+	git -C "$TASHK_DIR" "$@" 2>/dev/null
+}
+
 toggle_silent() {
 	if [ "$TASHK_SILENCE_GIT" = "false" ]; then
 		TASHK_SILENCE_GIT="true"
@@ -54,6 +59,21 @@ tashk_add() {
 }
 
 tashk_clean() {
+	shift 1
+	tashk_getopts "$@"
+	shift $(( OPTIND - 1 ))
+
+	if [ "$1" = "all" ]; then
+		branch=$(_GIT branch --show-current)
+		files=$(_GIT ls-tree "$branch" --name-only)
+		[ -n "$files" ] || files="$TASHK_DIR/*.txt"
+		for file in $files; do
+			file="${file##$TASHK_DIR}"
+			printf "%s: " "$file"
+			tashk_clean clean -f "$file"
+		done
+		exit $?
+	fi
 	to_delete=$(grep -c '^x ' "$FILE")
 	to_compress=$(grep -c '^$' "$FILE")
 	[ "$to_delete" -eq 0 ] && [ "$to_compress" -eq 0 ] && printf "%s\n" "Nothing to clean up." >&2 && return 2
@@ -202,8 +222,15 @@ ENVIRONMENT VARIABLES:
 		clean|c)
 			printf "%s\n" \
 "Usage: $PROGRAM clean
+       $PROGRAM clean all
 	Deletes completed tasks and empty lines from the todofile
-	Stores a 'backup' in $TASHK_FILE~." >&2;;
+	Stores a 'backup' in $TASHK_FILE~.
+
+	The optional argument 'all' makes clean do this to all todofiles.
+	If TASHK_DIR is a git repository, it will clean all the files returned
+	by 'tashk git ls-tree \$(tashk git branch --show-current) --name-only'.
+	If it isn't, it will clean all of the files matched by the glob,
+	'$TASHK_DIR/*.txt'." >&2;;
 		do|d|x)
 			printf "%s\n" \
 "Usage: $PROGRAM do
