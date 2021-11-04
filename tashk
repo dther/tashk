@@ -185,6 +185,9 @@ tashk_move_now() {
 }
 
 tashk_edit() {
+	shift 1
+	tashk_getopts "$@"
+	shift $(( OPTIND - 1 ))
 	# open in editor. vi if unspecified.
 	EDITOR="${EDITOR:-vi}"
 	$EDITOR "$FILE"
@@ -192,6 +195,10 @@ tashk_edit() {
 }
 
 tashk_sort() {
+	shift 1
+	tashk_getopts "$@"
+	shift $(( OPTIND - 1 ))
+
 	# The todo.txt file standard's rationale for sorting
 	# is most correct when characters are sorted in ASCII/UTF8 order.
 	# This causes the sort order of
