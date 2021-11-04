@@ -99,6 +99,8 @@ tashk_ls() {
 	parg=''; pflag='0' # set defaults
 	COMMAND_FLAGS='p:'
 	tashk_getopts "$@"
+	shift $(( OPTIND - 1 ))
+
 	[ -n "$parg" ] && TASHK_LS_PREFILTER="$parg" # "$TASHK_LS_PREFILTER" can be set to a default
 
 	if [ -z "$TASHK_LS_PREFILTER" ]; then
@@ -113,9 +115,11 @@ tashk_move() {
 	# No options for now
 	shift 1
 	tashk_getopts "$@"
-	to_move=""
+	shift $(( OPTIND - 1 ))
+
 	# Every positive integer is a line number and therefore a task
 	# Everything else is a potential filename
+	to_move=""
 	for arg do
 		case "$arg" in
 			''|*[!0-9]*)
@@ -269,7 +273,7 @@ Usage: $PROGRAM [-v] [-f todofile] [command] [command_flags] command_args...
 Command flags are command-specific, but always stop at the first non-flag argument.
 
 Valid commands are:
-	add, clean, edit, do, ls, sort, git, help
+	add, clean, edit, move, do, ls, sort, git, help
 For help with specific commands, do 'tashk help <command>'" >&2;;
 	esac
 }
